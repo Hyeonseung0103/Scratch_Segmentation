@@ -46,17 +46,25 @@
 
 1. U-Net
 
-- Segmentation 모델 중 하나로 이전 층의 공간 정보를 최대한 보존하면서 이미지를 픽셀 단위로 분류시키는 모델.
+- Segmentation 모델 중 하나로 2015년에 등장했고, 이전 층의 공간 정보를 최대한 보존하면서 이미지를 픽셀 단위로 분류시키는 모델이다.
 
-- Encoding path에서의 Downsampling(채널의 수는 늘리고, 피처맵의 크기는 줄어듬)과정에서 만들어진 피처맵의 일부를 Decoding path의 Upsampling(채널의 수는 줄고, 피처맵의 크기는
-커짐)과정에서 사용함으로써 이전 층의 공간 정보 손실을 최소화 시키려는 것이 특징이다.
+- Encoding path의 Downsampling 과정에서 만들어진 피처맵의 일부를 Decoding path의 Upsampling 과정에서 사용함으로써 이전층의 공간 정보 손실을 최소화 시키려는 것이 특징이다.
+
+- Downsampling 과정에서는 합성곱, ReLU 활성화 함수, Max Pooling 연산을 통해 채널의 수는 늘리고, 피처맵의 크기는 줄인다.
+
+- Upsampling 과정에서는 Transpose Convolution과 Concatenate를 활용하여 Downsampling에서 줄어든 피처맵의 크기를 원본과 비슷한 사이즈로 키우고, 채널의 수는 줄인다(채널은 각 class의 갯수. 이진분류면 채널이 1).
 
 2. U-Net3Plus
 
-3. DeepLabV3
+3. DeepLab V3+
+
+- DeepLab V3+ 모델은 2018년 구글에서 발표한 모델이고, DeepLab 시리즈 중 가장 높은 성능을 내는 모델로 알려져있다.
+
+- DeepLab 시리즈에서 사용되는 핵심 개념 중 하나인 Atrous convolution는 필터 내부에 빈 공간을 두고 연산을 함으로써 한 픽셀이 볼 수 있는 영역을 나타내는 field of view를 키우는 연산 방법이다. 즉, 한 픽셀이 커버할 수 있는 영역이 넓을수록 많은 정보를 저장할 수 있기 때문에 DeepLab 시리즈 모델은 이 Atrous convolution 개념을 활용한다. 특히, DeepLab V2 이후의 모델들은 피처맵에 여러 rate의 Atrous convolution를 병렬로 적용하고 결과를 합치는 ASPP(Atrous spatial pyramid pooling)의 개념이 기본적으로 사용되고 있다.
+
+- DeepLab V3+는 field of view를 크게 가져가면서, ASPP를 각 채널마다 독립적으로 수행한 후 결과를 합치는 ASSPP(Atrous Separable Spartial Pyramid Pooling) 개념을 활용하여 파라미터수와 연산량을 줄였다. 이전 시리즈인 DeepLab V3와는 달리 Encoder에도 ASSPP를 적용했고(Xception), Decoder에는 기존의 upsampling 방법을 U-Net style처럼 변경해서 성능을 높였다. 즉, U-Net과 유사하게 intermediate connection을 가지는 encoder-decoder 구조를 적용하여 기존 DeepLab 시리즈보다 정교한 예측을 할 수 있게 한다.
 
 이렇게 모델 설명 간단하게 하고, 배달 프로젝트처럼 1차, 2차, 3차 모델링 느낌으로 성능 비교하자. ppt에 성능은 다 나와있으니까 그거 쓰면 될 듯.
-
 
 
 ## 결론
