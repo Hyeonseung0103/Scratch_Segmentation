@@ -44,7 +44,9 @@
 ## 모델링
 손실함수는 주로 Dice Loss를 사용했고, Optimizer는 Adam, 평가지표는 IoU Score를 사용했다.
 
-1. U-Net
+### 1. 사용한 모델
+
+1) U-Net
 
 - Segmentation 모델 중 하나로 2015년에 등장했고, 이전 층의 공간 정보를 최대한 보존하면서 이미지를 픽셀 단위로 분류시키는 모델이다.
 
@@ -52,11 +54,16 @@
 
 - Downsampling 과정에서는 합성곱, ReLU 활성화 함수, Max Pooling 연산을 통해 채널의 수는 늘리고, 피처맵의 크기는 줄인다.
 
-- Upsampling 과정에서는 Transpose Convolution과 Concatenate를 활용하여 Downsampling에서 줄어든 피처맵의 크기를 원본과 비슷한 사이즈로 키우고, 채널의 수는 줄인다(채널은 각 class의 갯수. 이진분류면 채널이 1).
+- Upsampling 과정에서는 Transpose Convolution과 Concatenate를 활용하여 Downsampling에서 줄어든 피처맵의 크기를 원본과 비슷한 사이즈로 키우고, 채널의 수는 줄인다(채널은 각 class의 갯수. 이진분류면 채널이 1.
 
-2. U-Net3Plus
+2) U-Net3Plus
 
-3. DeepLab V3+
+- U-Net의 상위 모델로 2020년에 등장했고, full scale로 이루어진 skip connection을 가진 모델이다. low-scale, high-sclae의 피처맵을 합쳐서 이전의 U-Net 모델들보다 적은 파라미터로도 정확한 결과를 얻을 수 있다.
+
+- 원하는 class의 정확한 위치와 class들간의 경계를 잘 인식하는 맵을 생성하기 위해 Focal loss, Multi-Scale SSIM, IoU loss를 혼합한 hybrid loss를 사용했고, decoder의 stage마다
+classification guidance module을 사용하여 정확도를 높였다.
+
+3) DeepLab V3+
 
 - DeepLab V3+ 모델은 2018년 구글에서 발표한 모델이고, DeepLab 시리즈 중 가장 높은 성능을 내는 모델로 알려져있다.
 
@@ -64,8 +71,19 @@
 
 - DeepLab V3+는 field of view를 크게 가져가면서, ASPP를 각 채널마다 독립적으로 수행한 후 결과를 합치는 ASSPP(Atrous Separable Spartial Pyramid Pooling) 개념을 활용하여 파라미터수와 연산량을 줄였다. 이전 시리즈인 DeepLab V3와는 달리 Encoder에도 ASSPP를 적용했고(Xception), Decoder에는 기존의 upsampling 방법을 U-Net style처럼 변경해서 성능을 높였다. 즉, U-Net과 유사하게 intermediate connection을 가지는 encoder-decoder 구조를 적용하여 기존 DeepLab 시리즈보다 정교한 예측을 할 수 있게 한다.
 
-이렇게 모델 설명 간단하게 하고, 배달 프로젝트처럼 1차, 2차, 3차 모델링 느낌으로 성능 비교하자. ppt에 성능은 다 나와있으니까 그거 쓰면 될 듯.
+### 2. 성능
 
+1) 1차 모델링(U-Net, DeepLab V3+ 사용)
+
+1차 모델링에서는 주어진 데이터에 AI-Hub에서 제공한 데이터를 추가하여 학습에 사용했다. 그 결과 데이터를 추가하고 Epochs를 100, Batch size 4, Learning rate 0.001, Optimizer는 Adam을 사용했을 때 IoU Score가 **0.1916**으로 향상 되었다. DeepLab V3+ 모델도 개발했지만 U-Net에 비해 성능이 좋지 못해서 추가로 학습시키진 않았다. 또한, 조명과 빛 반사가 있는 부분에 스크래치가 있는 경우 모델이 이를 잘 분류하는 문제가 있어서 광원을 제거하여 학습시켰지만, 기대와는 달리 성능은 오히려 떨어졌다. 광원을 제거하면서 빛 뿐만 아니라 이미지 자체가 약간 흐려진 것이 원인이 된 것 같다.
+
+2) 2차 모델링
+
+2차 모델링에서는 원본 이미지를 Gray Scale로 바꾸고, Optimizer, 학습률 계획법 등의 하이퍼 파라미터를 튜닝했다. 그 결과 Epohcs를 100, Batch size 4, Learning rate 0.0001, Optimizer는 Adam, 학습률 계획법은 Cosine Annealing Warm Restarts를 사용했을 때 기존 U-Net 모델의 성능보다 우수한 **0.2107**의 IoU Score를 기록했고, 프로젝트의 목표였던 0.20 이상의 IoU Score 또한 달성했다.
+
+3) 3차 모델링
+
+3차 모델링에서는 U-Net의 상위 모델인 U-Net3Plus 모델을 개발했다. U-Net에 비해 학습시간이 매우 오래걸려서 Epochs를 10으로 하고, 나머지 조건은 모두 동일하게 한 후 기존의 U-Net 모델과 U-Net3Plus 모델을 비교한 결과 U-Net 모델은 IoU Score가 **0.1602**, U-Net3Plus 모델은 **0.1831**을 기록함으로써 U-Net3Plus 모델의 성능이 더 좋았다. U-Net3Plus 모델을 더 깊게 학습시키면 기존의 U-Net 모델보다 더 성능이 높은 모델을 만들 수 있을 것으로 기대한다.
 
 ## 결론
 
