@@ -11,13 +11,15 @@
 
 - 모델이 스크래치의 유무와 위치를 분류한다면 차량 이미지를 검토하는 인원이 일일이 모든 사진을 확인해야 하는 번거로움이 줄어든다는 것을 해당 프로젝트의 기대효과라고 할 수 있다.
 
+- 목표: 육안으로 봤을 때도 명확한 스크래치 정도는 분류하는 모델, IoU Score가 0.20 이상인 모델을 개발하는 것.
+
 ## 프로젝트 파이프라인
 
 1. 데이터는 넥스트랩 기업과 AI-Hub에서 제공. 
 
 2. 제공 받은 데이터는 파이썬과 Open CV 라이브러리를 활용해 전처리(256 x 256으로 크기 통일, 색상 조정, 조명과 빛 반사 제거를 위한 광원 제거, 마스킹 이미지 생성 등).
 
-3. 딥러닝 프레임워크 중 하나인 Pytorch를 기반으로 U-Net, U-Net3Plus, DeepLabV3 모델을 개발. 
+3. 딥러닝 프레임워크 중 하나인 Pytorch를 기반으로 U-Net, U-Net3Plus, DeepLab V3+ 모델을 개발. 
 
 4. 모델의 예측 결과는 파이썬의 matplotlib 라이브러리를 활용하여 시각화.
 
@@ -29,7 +31,7 @@
 
 - 학습 데이터: 13,000개
 
-- 검증 및 테스트 데이터: 3,000개(학습할 데이터가 충분하지 않다고 판단하여 검증 데이터를 테스트 데이터로도 활용)
+- 검증 및 테스트 데이터: 3,000개(학습할 데이터가 충분하지 않다고 판단하여 검증 데이터와 테스트 데이터를 동일하게 사용)
 
 - 데이터 용량: 약 1GB
 
@@ -54,11 +56,11 @@
 
 - Downsampling 과정에서는 합성곱, ReLU 활성화 함수, Max Pooling 연산을 통해 채널의 수는 늘리고, 피처맵의 크기는 줄인다.
 
-- Upsampling 과정에서는 Transpose Convolution과 Concatenate를 활용하여 Downsampling에서 줄어든 피처맵의 크기를 원본과 비슷한 사이즈로 키우고, 채널의 수는 줄인다(채널은 각 class의 갯수. 이진분류면 채널이 1.
+- Upsampling 과정에서는 Transpose Convolution과 Concatenate를 활용하여 Downsampling에서 줄어든 피처맵의 크기를 원본과 비슷한 사이즈로 키우고, 채널의 수는 줄인다(채널은 각 class의 갯수. 이진분류면 채널이 1).
 
 2) U-Net3Plus
 
-- U-Net의 상위 모델로 2020년에 등장했고, full scale로 이루어진 skip connection을 가진 모델이다. low-scale, high-sclae의 피처맵을 합쳐서 이전의 U-Net 모델들보다 적은 파라미터로도 정확한 결과를 얻을 수 있다.
+- U-Net의 상위 모델로 2020년에 등장했고, full scale로 이루어진 skip connection을 가진 모델이다. low-scale, high-scale의 피처맵을 합쳐서 이전의 U-Net 모델들보다 적은 파라미터로도 정확한 결과를 얻을 수 있다.
 
 - 원하는 class의 정확한 위치와 class들간의 경계를 잘 인식하는 맵을 생성하기 위해 Focal loss, Multi-Scale SSIM, IoU loss를 혼합한 hybrid loss를 사용했고, decoder의 stage마다
 classification guidance module을 사용하여 정확도를 높였다.
@@ -79,7 +81,7 @@ classification guidance module을 사용하여 정확도를 높였다.
 
 2) 2차 모델링
 
-2차 모델링에서는 원본 이미지를 Gray Scale로 바꾸고, Optimizer, 학습률 계획법 등의 하이퍼 파라미터를 튜닝했다. 그 결과 Epohcs를 100, Batch size 4, Learning rate 0.0001, Optimizer는 Adam, 학습률 계획법은 Cosine Annealing Warm Restarts를 사용했을 때 기존 U-Net 모델의 성능보다 우수한 **0.2107**의 IoU Score를 기록했고, 프로젝트의 목표였던 0.20 이상의 IoU Score 또한 달성했다.
+2차 모델링에서는 원본 이미지를 Gray Scale로 바꾸고, Optimizer, 학습률 계획법 등의 하이퍼 파라미터를 튜닝했다. 그 결과 Epohcs를 100, Batch size 4, Learning rate 0.0001, Optimizer는 Adam, 학습률 계획법은 Cosine Annealing Warm Restarts를 사용했을 때 기존 U-Net 모델의 성능보다 높은 **0.2107**의 IoU Score를 기록했고, 프로젝트의 목표였던 0.20 이상의 IoU Score 또한 달성했다.
 
 3) 3차 모델링
 
@@ -91,15 +93,15 @@ classification guidance module을 사용하여 정확도를 높였다.
 
 ![image](https://user-images.githubusercontent.com/97672187/183616510-42e7285b-82e1-44ea-8235-357db2788761.png)
 
-위의 두 사진은 원본 이미지와 라벨 이미지고, 그 옆에 오른쪽에 있는 사진은 손실함수로 Binary Cross Entropy를 사용했을 때의 U-Net 모델의 예측 결과, 밑의 사진은 손실함수로 Dice Loss를 사용했을 때 모델들의 예측 결과이다.
+위의 두 사진은 원본 이미지와 라벨 이미지고, 그 옆에 오른쪽에 있는 사진은 손실함수로 Binary Cross Entropy를 사용했을 때의 U-Net 모델의 예측 결과, 밑의 사진은 손실함수로 Dice Loss를 사용했을 때 여러 모델들의 예측 결과이다.
 
-- 초기에는 손실함수로 Binary Cross Entropy를 사용했는데 불균형 데이터의 특성상 모델이 모든 픽셀을 0의 클래스로 즉, 스크래치가 없는 픽셀로 분류를 하더라도 손실이 매우 낮게 나온다는 문제점이 있다. 해당 이미지에서는 0의 클래스가 약 97퍼센트 이상이기 때문에 모델이 모든 픽셀을 배경으로 예측 해도 매우 높은 정확도를 가지는 것처럼 학습하게 된다는 것이다. 
+- 초기에는 손실함수로 Binary Cross Entropy를 사용했는데 불균형 데이터의 특성상 모델이 모든 픽셀을 0의 클래스로 즉, 스크래치가 없는 픽셀로 분류를 하더라도 손실이 매우 낮게 나온다는 문제점이 있다. 해당 이미지에서는 0의 클래스의 비율이 약 97퍼센트 이상이기 때문에 모델이 모든 픽셀을 배경으로 예측 해도 매우 높은 정확도를 가지는 것처럼 학습하게 된다는 것이다. 
 
 - 따라서 배경인 부분보다 스크래치가 난 부분에 초점을 둔 Dice Loss를 손실함수로 사용했다. 
 
 - 밑의 사진의 모델들은 모두 다른 형태로 스크래치를 분류했는데 밑에서 4번째 그림인 최고 성능을 낸 U-Net 모델이 가장 비슷한 예측을 한 것을 알 수 있다. 광원을 제거한 데이터를 학습시킨 모델은 다른 U-Net 모델들에 비해 부정확한 예측을 한 것을 볼 수 있는데 광원을 제거하면서 스크래치가 난 부분 또한 흐릿하게 되어버린 것이 원인이 된 것으로 판단된다.
 
-- DeepLabV3은 해당 이미지 외의 다른 이미지도 U-Net에 비해 예측률이 떨어져서 더 학습시키진 않았다.
+- DeepLab V3+은 해당 이미지 외의 다른 이미지도 U-Net에 비해 예측률이 떨어져서 더 학습시키진 않았다.
 
 - 추가로, 에포크를 10만 주고 학습했던 U-Net3Plus 모델도 비슷한 형태로 스크래치를 분류한 것을 확인할 수 있다.
 
