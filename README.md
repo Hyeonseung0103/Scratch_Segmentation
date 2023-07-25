@@ -2,6 +2,8 @@
 
 차량 이미지 내의 스크래치 위치 파악을 위한 Image Segmentation 모델 개발이라는 주제로 진행한 프로젝트이다. 넥스트랩 기업과 연계하여 프로젝트를 개인으로 진행했고, 이미지 라벨링, 데이터 수집, 데이터 전처리, 모델링, 시각화 등의 역할을 수행했다.
 
+[프로젝트 내용 설명 영상](https://drive.google.com/file/d/1RqmRlzD0GBRXMoh25818ANIhmK2HYAjx/view?usp=sharing)
+
 
 ## 프로젝트 개요 및 필요성
 
